@@ -35,6 +35,8 @@ class KMeans(object):
         self._data = data
         self._centroids = self._pick_centroids()
 
+        self._assign_points()
+
     @staticmethod
     def _compute_euclidean_distances(arr1, arr2):
         """Compute Euclidean distances between two arrays.
@@ -55,6 +57,11 @@ class KMeans(object):
         diff = expand(arr1, arr2, 0) - expand(arr2, arr1, 1)
 
         return (diff**2).sum(axis=-1)**0.5
+
+    def _assign_points(self):
+        """Assign data points to clusters. Return an array of cluster labels."""
+
+        self._labels = self._compute_euclidean_distances(self._data, self._centroids).argmin(axis=0)
 
 
 
