@@ -36,12 +36,26 @@ class KMeans(object):
         return self._data[np.random.choice(np.arange(self._data.shape[0]), n_centroids)]
 
     @misc.check_types
-    def fit(self, data: np.ndarray):
+    def fit(self, data: np.ndarray, max_iter: int = 10000, tolerance: float = 0.001):
         self._data = data
         self._centroids = self._pick_centroids()
 
-        self._assign_points()
-        self._update_centroids()
+        centroids_displacement = 10*tolerance or 1
+        i = 0
+
+        while centroids_displacement > tolerance:
+            if i > max_iter:
+                break
+
+            i += 1
+            old_centroids = np.array(self.centroids)
+
+            self._assign_points()
+            self._update_centroids()
+
+            centroids_displacement = self._euclidean_pairs(old_centroids, self._centroids).sum()
+
+        print(f"Fitting completed in {i} iterations.")
 
     @staticmethod
     def _euclidean_matrix(arr1, arr2):
