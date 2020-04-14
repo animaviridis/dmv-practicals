@@ -35,3 +35,27 @@ class KMeans(object):
         self._data = data
         self._centroids = self._pick_centroids()
 
+    @staticmethod
+    def _compute_euclidean_distances(arr1, arr2):
+        """Compute Euclidean distances between two arrays.
+
+        Parameters
+        ----------
+        arr1, arr2  :   numpy.ndarray
+            two arrays to compute the distances for; shape: (n_samples, n_dimensions)
+
+        Returns
+        -------
+        a np.ndarray of Euclidean distances; shape: (arr1.shape[0], arr2.shape[0])
+        """
+
+        def expand(a1, a2, axis=0):
+            return np.stack(a2.shape[0]*(a1,), axis=axis)
+
+        diff = expand(arr1, arr2, 0) - expand(arr2, arr1, 1)
+
+        return (diff**2).sum(axis=-1)**0.5
+
+
+
+
