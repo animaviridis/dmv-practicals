@@ -10,6 +10,7 @@ class KMeans(object):
             raise ValueError(f"'k' must be positive (got {k})")
         self._k = k
 
+        self._labels_set = np.arange(k)
         self._data = None
         self._labels = None
         self._centroids = None
@@ -21,6 +22,10 @@ class KMeans(object):
     @property
     def labels(self):
         return self._labels
+
+    @property
+    def clusters(self):
+        return {label: self._data[np.where(self._labels == label)] for label in self._labels_set}
 
     @property
     def centroids(self):
@@ -36,6 +41,7 @@ class KMeans(object):
         self._centroids = self._pick_centroids()
 
         self._assign_points()
+        self._update_centroids()
 
     @staticmethod
     def _euclidean_matrix(arr1, arr2):
@@ -73,10 +79,20 @@ class KMeans(object):
         return ((arr1 - arr2)**2).sum(axis=-1)**0.5
 
     def _assign_points(self):
-        """Assign data points to clusters. Return an array of cluster labels."""
+        """Assign data points to clusters."""
 
         self._labels = self._euclidean_matrix(self._data, self._centroids).argmin(axis=0)
 
+    def _update_centroids(self):
+        clusters = self.clusters
+
+        for i in self._labels_set:
+            if clusters[i].size:
+                self._centroids[i] = clusters[i].mean(axis=0)
+            else:
+                # move the centroid to coincide with a random data point
+                # - in the next iteration, at least one sample will belong to it
+                self._centroids[i] = self._pick_centroids(1)
 
 
 
