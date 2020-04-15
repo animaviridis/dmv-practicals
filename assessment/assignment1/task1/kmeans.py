@@ -46,7 +46,7 @@ class KMeans(object):
         return self._data[np.random.choice(np.arange(self._data.shape[0]), n_centroids)]
 
     @misc.check_types
-    def fit(self, data: np.ndarray, n_attempts: int = 1, max_iter: int = 10000, tolerance: float = 0.001):
+    def fit(self, data: np.ndarray, n_attempts: int = 1, max_iter: int = 1000, tolerance: float = 0.001):
         self._data = data
 
         best_sse = np.inf
