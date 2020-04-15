@@ -46,11 +46,30 @@ class KMeans(object):
         return self._data[np.random.choice(np.arange(self._data.shape[0]), n_centroids)]
 
     @misc.check_types
-    def fit(self, data: np.ndarray, max_iter: int = 10000, tolerance: float = 0.001):
+    def fit(self, data: np.ndarray, n_attempts: int = 1, max_iter: int = 10000, tolerance: float = 0.001):
         self._data = data
+
+        best_sse = np.inf
+        best_centroids = None
+        best_sse_history = None
+
+        for i in range(n_attempts):
+            self._fit(max_iter, tolerance)
+            new_sse = self.sse
+            if new_sse < best_sse:
+                best_sse = new_sse
+                best_centroids = np.array(self._centroids)
+                best_sse_history = np.array(self._sse_history)
+
+        self._centroids = best_centroids
+        self._sse_history = best_sse_history
+        self._assign_points()  # recompute labels and distances
+
+    def _fit(self, max_iter, tolerance):
         self._centroids = self._pick_centroids()
 
-        centroids_displacement = 10*tolerance or 1
+        centroids_displacement = 10 * tolerance or 1
+
         i = 0
 
         self._sse_history = np.zeros(max_iter)
