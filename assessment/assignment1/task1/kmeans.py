@@ -14,6 +14,8 @@ class KMeans(object):
         self._data = None
         self._labels = None
         self._centroids = None
+        self._all_distances = None
+        self._sse_history = None
 
     @property
     def k(self):
@@ -31,6 +33,14 @@ class KMeans(object):
     def centroids(self):
         return self._centroids
 
+    @property
+    def sse(self):
+        return (self._all_distances[np.arange(self._labels.size), self._labels]**2).sum()
+
+    @property
+    def sse_history(self):
+        return self._sse_history
+
     def _pick_centroids(self, n_centroids=None):
         n_centroids = n_centroids or self._k
         return self._data[np.random.choice(np.arange(self._data.shape[0]), n_centroids)]
@@ -43,19 +53,23 @@ class KMeans(object):
         centroids_displacement = 10*tolerance or 1
         i = 0
 
+        self._sse_history = np.zeros(max_iter)
+
         while centroids_displacement > tolerance:
-            if i > max_iter:
+            if i >= max_iter:
+                print(f"WARNING: reached maximal number of iterations ({i})")
                 break
 
-            i += 1
             old_centroids = np.array(self.centroids)
 
             self._assign_points()
+            self._sse_history[i] = self.sse  # store current SSE (model error)
             self._update_centroids()
 
             centroids_displacement = self._euclidean_pairs(old_centroids, self._centroids).sum()
+            i += 1
 
-        print(f"Fitting completed in {i} iterations.")
+        self._sse_history = self._sse_history[:i]
 
     @staticmethod
     def _euclidean_matrix(arr1, arr2):
@@ -74,7 +88,7 @@ class KMeans(object):
         def expand(a1, a2, axis=0):
             return np.stack(a2.shape[0]*(a1,), axis=axis)
 
-        return KMeans._euclidean_pairs(expand(arr1, arr2, 0), expand(arr2, arr1, 1))
+        return KMeans._euclidean_pairs(expand(arr1, arr2, 1), expand(arr2, arr1, 0))
 
     @staticmethod
     def _euclidean_pairs(arr1, arr2):
@@ -95,7 +109,8 @@ class KMeans(object):
     def _assign_points(self):
         """Assign data points to clusters."""
 
-        self._labels = self._euclidean_matrix(self._data, self._centroids).argmin(axis=0)
+        self._all_distances = self._euclidean_matrix(self._data, self._centroids)
+        self._labels = self._all_distances.argmin(axis=-1)
 
     def _update_centroids(self):
         clusters = self.clusters
